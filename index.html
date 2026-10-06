@@ -1,0 +1,513 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Engineering Practicals</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f1f5f9;color:#1e293b}
+header{background:#173b75;color:white;text-align:center;padding:28px 12px}
+main{max-width:1000px;margin:auto;padding:18px}
+section{background:white;padding:20px;margin:18px 0;border-radius:12px;box-shadow:0 2px 8px #0001}
+h2{color:#173b75}
+.aim{background:#edf4ff;padding:12px;border-radius:8px}
+pre{background:#111827;color:#e5e7eb;padding:16px;border-radius:8px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+button{background:#2458b8;color:white;border:0;padding:9px 14px;border-radius:6px;cursor:pointer}
+button:hover{background:#173b75}
+.codehead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+footer{text-align:center;padding:20px;color:#64748b}
+</style>
+</head>
+<body>
+<header>
+<h1>Data Engineering Practicals</h1>
+<p>BSc Data Science | Semester 3</p>
+<p>Roll No. 50</p>
+</header>
+<main>
+
+<section>
+<h2>Practical 01: Data Storage &amp; Retrieval</h2>
+<div class="aim"><b>Aim</b>
+<ol>
+<li>Implement relational &amp; NoSQL databases for structured/unstructured data.</li>
+<li>Perform query optimization techniques in SQL &amp; NoSQL.</li>
+</ol></div>
+<div class="codehead"><h3>1(a) Create database and table</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>CREATE DATABASE DataStorageDB;
+GO
+USE DataStorageDB;
+GO
+
+CREATE TABLE Student
+(
+    StudentID INT PRIMARY KEY,
+    StudentName VARCHAR(50),
+    Course VARCHAR(50),
+    Semester INT,
+    Marks INT
+);
+
+INSERT INTO Student
+VALUES
+(1, 'Amit', 'Data Science', 2, 78),
+(2, 'Neha', 'Data Science', 2, 85),
+(3, 'Rahul', 'Data Science', 2, 65),
+(4, 'Priya', 'Data Science', 2, 92),
+(5, 'Sneha', 'Data Science', 2, 74),
+(6, 'Karan', 'Data Science', 2, 88),
+(7, 'Riya', 'Data Science', 2, 69),
+(8, 'Akash', 'Data Science', 2, 95);
+
+SELECT * FROM Student;</code></pre>
+
+<div class="codehead"><h3>1(b) Query optimization</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>CREATE INDEX idx_student_marks
+ON Student(Marks);
+
+SELECT *
+FROM Student
+WHERE Marks &gt; 90;
+
+-- In SSMS, enable Include Actual Execution Plan
+-- using Query > Include Actual Execution Plan
+-- or press Ctrl + M, then execute:
+
+SELECT *
+FROM Student
+WHERE Marks &gt; 90;</code></pre>
+</section>
+
+<section>
+<h2>Practical 02: Big Data Processing with Hadoop &amp; MapReduce</h2>
+<div class="aim"><b>Aim</b>
+<ol>
+<li>Write and execute a simple MapReduce program.</li>
+<li>Perform batch processing on large datasets using Hadoop.</li>
+</ol></div>
+<div class="codehead"><h3>2(a) MapReduce WordCount</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>mkdir -p ~/mapreduce/input
+nano ~/mapreduce/input/sample.txt
+
+# Enter the following text in the file:
+Hadoop is big data
+Hadoop is powerful
+Big data is interesting
+Hadoop makes big data processing possible
+
+# Save: Ctrl + O, Enter, Ctrl + X
+
+cat ~/mapreduce/input/sample.txt
+
+hdfs dfs -mkdir -p /user/$(whoami)/wordcount/input
+
+hdfs dfs -put ~/mapreduce/input/sample.txt /user/$(whoami)/wordcount/input/
+
+hdfs dfs -ls /user/$(whoami)/wordcount/input
+
+hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.4.2.jar wordcount /user/$(whoami)/wordcount/input /user/$(whoami)/wordcount/output
+
+hdfs dfs -ls /user/$(whoami)/wordcount/output
+
+hdfs dfs -cat /user/$(whoami)/wordcount/output/part-r-00000</code></pre>
+
+<div class="codehead"><h3>2(b) Batch processing</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code># Format only if required, and only once:
+hdfs namenode -format
+
+/usr/local/hadoop/sbin/start-dfs.sh
+
+jps
+hdfs dfs -ls /
+
+cd ~/bigdata
+
+seq 1 1000000 &gt; large_dataset.txt
+
+wc -l large_dataset.txt
+
+ls -lh large_dataset.txt
+
+hdfs dfs -mkdir -p /user/$USER/batch_input
+
+hdfs dfs -put large_dataset.txt /user/$USER/batch_input/
+
+# Replace chaitanya with your Ubuntu username
+hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.4.2.jar wordcount /user/chaitanya/batch_input /user/chaitanya/batch_output
+
+hdfs dfs -ls /user/$USER/batch_output
+
+hdfs dfs -cat /user/$USER/batch_output/part-r-00000 | head -20</code></pre>
+</section>
+
+<section>
+<h2>Practical 03: Real-time Data Processing with Kafka &amp; Flink</h2>
+<div class="aim"><b>Aim</b>
+<ul><li>Set up a real-time data pipeline using Apache Kafka.</li></ul></div>
+<div class="codehead"><h3>Kafka installation and setup</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>cd ~
+mkdir -p bigdata-tools
+cd ~/bigdata-tools
+pwd
+
+wget https://downloads.apache.org/kafka/4.3.1/kafka_2.13-4.3.1.tgz
+
+ping -c 3 8.8.8.8
+
+sudo rm -f /etc/resolv.conf
+sudo bash -c 'echo "nameserver 8.8.8.8" &gt; /etc/resolv.conf'
+
+ping -c 3 google.com
+
+wget https://downloads.apache.org/kafka/4.3.1/kafka_2.13-4.3.1.tgz
+
+ls -lh
+
+tar -xzf kafka_2.13-4.3.1.tgz
+mv kafka_2.13-4.3.1 kafka
+
+cd ~/bigdata-tools/kafka
+ls
+
+KAFKA_CLUSTER_ID="$(bin/kafka-storage.sh random-uuid)"
+echo $KAFKA_CLUSTER_ID
+
+bin/kafka-storage.sh format --standalone -t "$KAFKA_CLUSTER_ID" -c config/server.properties</code></pre>
+
+<div class="codehead"><h3>Start Kafka broker</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>cd ~/bigdata-tools/kafka
+bin/kafka-server-start.sh config/server.properties</code></pre>
+
+<div class="codehead"><h3>Create topic and send messages</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code># Open a second Ubuntu terminal
+cd ~/bigdata-tools/kafka
+
+bin/kafka-topics.sh --create --topic sales-events --bootstrap-server localhost:9092
+
+bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+
+bin/kafka-topics.sh --describe --topic sales-events --bootstrap-server localhost:9092
+
+bin/kafka-console-producer.sh --topic sales-events --bootstrap-server localhost:9092
+
+# Type these events one at a time:
+Mumbai,Laptop,50000
+Pune,Mobile,25000
+Mumbai,Keyboard,2000
+Delhi,Laptop,60000</code></pre>
+
+<div class="codehead"><h3>Consume messages</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code># Open a third Ubuntu terminal
+cd ~/bigdata-tools/kafka
+
+bin/kafka-console-consumer.sh --topic sales-events --from-beginning --bootstrap-server localhost:9092</code></pre>
+</section>
+
+<section>
+<h2>Practical 04: Pipeline Orchestration &amp; Workflow Automation</h2>
+<div class="aim"><b>Aim</b>
+<ul><li>Build and manage workflows using Apache Airflow.</li></ul></div>
+<div class="codehead"><h3>Airflow setup</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>whoami
+python3 --version
+
+sudo apt update
+sudo apt install python3-pip
+
+pip3 --version
+which python
+python --version
+pip --version
+
+python -m pip install --upgrade pip
+
+airflow version
+airflow db migrate
+
+ls -la ~/airflow/dags
+
+nano ~/airflow/dags/student_sales_pipeline.py</code></pre>
+
+<div class="codehead"><h3>Python DAG program</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime
+
+def extract_data():
+    print("Extracting sales data...")
+
+def validate_data():
+    print("Validating sales data...")
+
+def transform_data():
+    print("Transforming sales data...")
+
+def generate_report():
+    import os
+    output_dir = os.path.expanduser("~/airflow/output")
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, "sales_summary.txt")
+
+    with open(output_file, "w") as f:
+        f.write("Sales Summary Report\n")
+        f.write("====================\n")
+        f.write("Total Sales: 1000\n")
+        f.write("Total Orders: 100\n")
+
+    print(f"Report generated: {output_file}")
+
+def finish_pipeline():
+    print("Sales pipeline completed successfully!")
+
+with DAG(
+    dag_id="student_sales_pipeline",
+    start_date=datetime(2026, 9, 9),
+    schedule="*/5 * * * *",
+    catchup=False,
+) as dag:
+
+    extract = PythonOperator(
+        task_id="extract_data",
+        python_callable=extract_data,
+    )
+
+    validate = PythonOperator(
+        task_id="validate_data",
+        python_callable=validate_data,
+    )
+
+    transform = PythonOperator(
+        task_id="transform_data",
+        python_callable=transform_data,
+    )
+
+    report = PythonOperator(
+        task_id="generate_report",
+        python_callable=generate_report,
+    )
+
+    finish = PythonOperator(
+        task_id="finish_pipeline",
+        python_callable=finish_pipeline,
+    )
+
+    extract &gt;&gt; validate &gt;&gt; transform &gt;&gt; report &gt;&gt; finish</code></pre>
+
+<div class="codehead"><h3>Run and test Airflow</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>airflow dags list
+
+airflow standalone
+
+# Open a second terminal
+ss -ltnp | grep -E '8080|9092'
+
+cd ~/airflow-practical
+source airflow_venv/bin/activate
+export AIRFLOW_HOME=$HOME/airflow
+
+airflow dags trigger student_sales_pipeline
+
+airflow dags list-runs -d student_sales_pipeline
+
+airflow dags list-runs student_sales_pipeline
+
+airflow tasks test student_sales_pipeline extract_data 2026-09-09
+
+airflow tasks list student_sales_pipeline
+
+cat $AIRFLOW_HOME/output/sales_summary.txt</code></pre>
+</section>
+
+<section>
+<h2>Practical 05: Distributed Computing &amp; Performance Optimization</h2>
+<div class="aim"><b>Aim</b>
+<ol>
+<li>Implement parallel data processing using Apache Spark.</li>
+<li>Optimize query performance with indexing and partitioning.</li>
+<li>Conduct fault tolerance testing in distributed data environments.</li>
+</ol></div>
+
+<div class="codehead"><h3>5(a) Parallel data processing</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>java -version
+python3 --version
+spark-submit --version
+
+mkdir -p ~/spark-practical
+cd ~/spark-practical
+
+nano parallel_processing.py
+
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("Parallel Processing Practical") \
+    .master("local[*]") \
+    .getOrCreate()
+
+sc = spark.sparkContext
+
+numbers = list(range(1, 21))
+rdd = sc.parallelize(numbers, 4)
+
+print("Number of partitions:", rdd.getNumPartitions())
+
+squared_rdd = rdd.map(lambda x: x * x)
+
+print("Squared values:", squared_rdd.collect())
+
+total = squared_rdd.reduce(lambda x, y: x + y)
+print("Sum of squared values:", total)
+
+spark.stop()
+
+# Save the Python program, then run:
+spark-submit parallel_processing.py</code></pre>
+
+<div class="codehead"><h3>5(b) Query optimization</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>nano query_optimization.py
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+spark = SparkSession.builder \
+    .appName("Query Optimization Practical") \
+    .master("local[*]") \
+    .getOrCreate()
+
+data = [
+    (1, "Laptop", "West", 55000),
+    (2, "Mouse", "East", 800),
+    (3, "Keyboard", "West", 1500),
+    (4, "Monitor", "South", 12000),
+    (5, "Laptop", "North", 60000),
+    (6, "Mouse", "West", 900),
+    (7, "Monitor", "East", 11000),
+    (8, "Keyboard", "North", 1700)
+]
+
+columns = ["order_id", "product", "region", "sales"]
+df = spark.createDataFrame(data, columns)
+
+df.show()
+
+df.write.mode("overwrite") \
+    .partitionBy("region") \
+    .parquet("sales_partitioned")
+
+print("Partitioned data saved.")
+
+sales_df = spark.read.parquet("sales_partitioned")
+west_df = sales_df.filter(col("region") == "West")
+
+west_df.show()
+
+print("Execution Plan:")
+west_df.explain(True)
+
+west_df.cache()
+print("West region count:", west_df.count())
+
+spark.catalog.clearCache()
+spark.stop()
+
+# Run:
+spark-submit query_optimization.py</code></pre>
+
+<div class="codehead"><h3>5(c) Fault tolerance</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>nano fault_tolerance.py
+
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("Fault Tolerance Practical") \
+    .master("local[4]") \
+    .config("spark.task.maxFailures", "4") \
+    .getOrCreate()
+
+sc = spark.sparkContext
+rdd = sc.parallelize(range(1, 101), 4)
+
+def process_partition(iterator):
+    values = list(iterator)
+
+    if 1 in values:
+        raise Exception("Simulated task failure")
+
+    return iter([x * 2 for x in values])
+
+try:
+    result = rdd.mapPartitions(process_partition).collect()
+    print("Result:", result)
+
+except Exception as error:
+    print("The task failed as expected.")
+    print("Error:", error)
+
+spark.stop()
+
+# Run:
+spark-submit fault_tolerance.py</code></pre>
+
+<div class="codehead"><h3>Demonstrate RDD lineage</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("RDD Lineage") \
+    .master("local[*]") \
+    .getOrCreate()
+
+sc = spark.sparkContext
+
+rdd1 = sc.parallelize([1, 2, 3, 4, 5])
+rdd2 = rdd1.map(lambda x: x * 10)
+rdd3 = rdd2.filter(lambda x: x &gt; 20)
+
+print(rdd3.toDebugString().decode("utf-8"))
+print("Result:", rdd3.collect())
+
+spark.stop()</code></pre>
+
+<div class="codehead"><h3>Demonstrate checkpointing</h3><button onclick="copyCode(this)">Copy Codes</button></div>
+<pre><code>from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("Checkpoint Practical") \
+    .master("local[*]") \
+    .getOrCreate()
+
+sc = spark.sparkContext
+sc.setCheckpointDir("checkpoint_folder")
+
+rdd = sc.parallelize(range(1, 11), 2)
+processed = rdd.map(lambda x: x * x)
+
+processed.checkpoint()
+
+print("Count:", processed.count())
+print("Checkpoint completed.")
+
+spark.stop()</code></pre>
+</section>
+
+</main>
+
+<footer>Data Engineering Practicals | BSc Data Science</footer>
+
+<script>
+function copyCode(button) {
+    const code = button.parentElement.nextElementSibling.querySelector("code").innerText;
+    const area = document.createElement("textarea");
+    area.value = code;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+
+    const oldText = button.innerText;
+    button.innerText = "Copied!";
+    setTimeout(() => button.innerText = oldText, 1500);
+}
+</script>
+</body>
+</html>
